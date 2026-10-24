@@ -37,8 +37,10 @@
         <a href="{{ route('transaksi.pdf', $transaksi) }}" class="tx-btn primary">Unduh PDF</a>
     </div>
 
+    @include('transaksi._surat-fill')
+
     <script>
-        // Kecilkan pratinjau agar muat di layar (lebar kertas A4 = 794px)
+        // Panjangkan ruang tanda tangan, lalu kecilkan pratinjau agar muat di layar (lebar kertas A4 = 794px)
         (function () {
             var page = document.getElementById('ea-txn');
             var host = page.closest('.page');
@@ -47,10 +49,12 @@
                 var avail = host.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
                 page.style.zoom = Math.min(1, avail / 794);
             }
+            function relayout() { window.eaFillSignature(page); fit(); }
             window.addEventListener('resize', fit);
             window.addEventListener('beforeprint', function () { page.style.zoom = 1; });
             window.addEventListener('afterprint', fit);
-            fit();
+            window.addEventListener('load', relayout);
+            relayout();
         })();
     </script>
 </x-app-layout>

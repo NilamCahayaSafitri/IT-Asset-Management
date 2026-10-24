@@ -18,6 +18,12 @@
     // Mode PDF (dompdf): lebar kolom lewat baris pengatur, karena <colgroup> tidak dibaca dompdf;
     // tanda {!! $s1 !!} {!! $s2 !!} {!! $s3 !!} memakai <sup>; logo disisipkan sebagai data URI.
     $pdf = $pdf ?? false;
+    $sigExtra = $sigExtra ?? 0;   // tambahan tinggi ruang tanda tangan (pt), hanya mode PDF
+    $sgH   = 14 + $sigExtra;                      // tinggi ruang tanda tangan (pt)
+    $sgcH  = max(0, ($sgH + 10.62) / 2 - 0.5);    // jarak antar baris kolom CMDB agar tingginya sama dengan kolom kiri
+    $sgStyle  = $pdf ? ' style="height:'.round($sgH, 2).'pt"' : '';
+    $sglStyle = $pdf ? ' style="height:'.round($sgH / 2, 2).'pt"' : '';
+    $sgcStyle = $pdf ? ' style="height:'.round($sgcH, 2).'pt"' : '';
     $cols = function (array $w) use ($pdf) {
         if ($pdf) {
             return '<tr class="ruler">'.collect($w)->map(fn ($x) => '<td style="width:'.$x.'%"></td>')->implode('').'</tr>';
@@ -35,11 +41,11 @@
 
 <div class="ea-head"><img class="ea-logo-l" src="{{ $logoL }}" alt="bpma"><img class="ea-logo-r" src="{{ $logoR }}" alt="PEMA Global Energi"></div>
 <div class="ea-cap">PGE ICT Area Operations</div>
-<div class="ea-title">EQUIPMENT ALLOCATION FORM</div>
+<div class="ea-title"><span>EQUIPMENT ALLOCATION FORM</span></div>
 
 <table class="ea-t">{!! $cols([62.1, 37.9]) !!}
-    <tr><td class="b"><div class="ul">INSTRUCTIONS</div><div class="n">1.&nbsp; Fill the form completely</div><div class="n">2.&nbsp; Do not leave any space blank – put N/A or cross out if not applicable</div></td>
-        <td class="b big">Reference No. : <span class="v">{{ $d['ref'] }}</span></td></tr>
+    <tr><td class="b nob"><div class="ul">INSTRUCTIONS</div><div class="n">1.&nbsp; Fill the form completely</div><div class="n">2.&nbsp; Do not leave any space blank – put N/A or cross out if not applicable</div></td>
+        <td class="nob refcell"><div class="ea-ref">Reference No. : <span class="v">{{ $d['ref'] }}</span></div></td></tr>
 </table>
 <div class="ea-gap"></div>
 
@@ -78,7 +84,9 @@
 </table>
 <div class="ea-fn">{!! $s3 !!} Status: a. Deployable&nbsp; b. Surplus&nbsp; c. Waiting for Disposal&nbsp; c. Broken</div>
 
-<div class="ea-rem"><b>Additional Remarks:</b> <span class="v">{{ $d['remarks'] }}</span></div>
+<div class="ea-rem"><b>Additional Remarks:</b></div>
+<div class="ea-rules"><div class="rl"></div><div class="rl"></div><div class="rl"></div></div>
+<div class="ea-remtxt">{{ $d['remarks'] }}</div>
 
 <div class="ea-resp-t">User/Custodian's Responsibilities:</div>
 <table class="ea-t ea-resp">{!! $cols([50, 50]) !!}
@@ -90,10 +98,20 @@
 <table class="ea-t ea-sig">{!! $cols([33.33, 33.33, 33.34]) !!}
     <tr><td class="b i big2">PGE-Only</td><td class="b i big2 sh">User-Only</td><td class="b i big2">CMDB-Only</td></tr>
     <tr>
-        <td class="b i"><div>Delivered / Received / Moved by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg">&nbsp;</div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeDate'] }}</span></div></td>
-        <td class="b i sh"><div>Received / Returned by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg">&nbsp;</div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['userName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v"></span></div></td>
-        <td class="b i"><div class="nb2">•&nbsp; Update&nbsp; ____________ (SRC)</div><div class="nb2 sg2">&nbsp;&nbsp;&nbsp;____________ (TECH)</div><div class="nb2">•&nbsp; Review&nbsp; ____________</div></td>
+        <td class="b i"><div>Delivered / Received / Moved by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg"{!! $sgStyle !!}><div class="sgl"{!! $sglStyle !!}></div></div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeDate'] }}</span></div></td>
+        <td class="b i sh"><div>Received / Returned by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg"{!! $sgStyle !!}><div class="sgl"{!! $sglStyle !!}></div></div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['userName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v"></span></div></td>
+        <td class="b i cm">
+            <table class="ea-cm"><tr><td class="l" style="width:30%">•&nbsp; Update</td><td class="m"></td><td class="r" style="width:20%">(SRC)</td></tr></table>
+            <div class="sgc"{!! $sgcStyle !!}></div>
+            <table class="ea-cm"><tr><td class="m"></td><td class="r" style="width:20%">(TECH)</td></tr></table>
+            <div class="sgc"{!! $sgcStyle !!}></div>
+            <table class="ea-cm"><tr><td class="l" style="width:30%">•&nbsp; Review</td><td class="m"></td></tr></table>
+        </td>
     </tr>
 </table>
 
-<div class="ea-foot"><span class="l">{!! $s1 !!} Select appropriate one</span><span class="r">Supersedes Rev 2.4 27 Aug 2009</span></div>
+@if ($pdf)
+    <table class="ea-foot-t"><tr><td class="f0"></td><td class="f1">{!! $s1 !!} Select appropriate one</td><td class="f2">Supersedes Rev 2.4 27 Aug 2009</td></tr></table>
+@else
+    <div class="ea-foot"><span class="l">{!! $s1 !!} Select appropriate one</span><span class="r">Supersedes Rev 2.4 27 Aug 2009</span></div>
+@endif

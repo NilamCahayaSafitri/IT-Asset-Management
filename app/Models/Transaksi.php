@@ -92,10 +92,10 @@ class Transaksi extends Model
         ]));
     }
 
-    /** 24 Agu 2026 (singkatan bulan Indonesia, sama seperti prototype) */
+    /** 24 Agustus 2026 (nama bulan Indonesia lengkap) */
     public static function tanggalIndo(Carbon $tanggal): string
     {
-        $bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
         return $tanggal->day.' '.$bulan[$tanggal->month - 1].' '.$tanggal->year;
     }

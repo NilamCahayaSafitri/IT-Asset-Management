@@ -67,10 +67,71 @@ class TransaksiController extends Controller
     /** Unduh surat sebagai file PDF (A4), mis. EAF-2026-ICT-0232.pdf */
     public function pdf(Transaksi $transaksi)
     {
-        $pdf = Pdf::loadView('transaksi.pdf', ['d' => $transaksi->suratData()])
-            ->setPaper('a4', 'portrait');
+        $d = $transaksi->suratData();
+
+        // Tahap 1: render apa adanya. Jika lebih dari satu halaman, coba mode rapat.
+        $rapat = false;
+        [$pdf, $akhir] = $this->renderPdf($d, 0, false);
+
+        if ($pdf->getDomPDF()->getCanvas()->get_page_count() > 1) {
+            $rapat = true;
+            [$pdf, $akhir] = $this->renderPdf($d, 0, true);
+        }
+
+        // Tahap 2: panjangkan ruang tanda tangan sebesar sisa halaman di bawah footer,
+        // sehingga footer kecil ("Select appropriate one" / "Supersedes ...") tepat di margin bawah.
+        $sisa = $this->sisaRuang($pdf, $akhir);
+        if ($sisa > 6) {
+            [$pdf] = $this->renderPdf($d, $sisa - 4, $rapat);   // 4 pt cadangan agar tidak melompat ke halaman 2
+        }
 
         return $pdf->download(str_replace('/', '-', $transaksi->no_referensi).'.pdf');
+    }
+
+    /**
+     * Render surat ke PDF dan catat posisi bawah footer surat (pt dari tepi atas kertas).
+     * Posisi dicatat lewat callback saat elemen digambar, karena pohon elemen dompdf
+     * sudah dikosongkan setelah render() selesai.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: float|null}
+     */
+    private function renderPdf(array $d, float $tambahan, bool $rapat): array
+    {
+        $akhir = null;
+
+        $pdf = Pdf::loadView('transaksi.pdf', ['d' => $d, 'sigExtra' => $tambahan, 'compact' => $rapat])
+            ->setPaper('a4', 'portrait');
+
+        $pdf->getDomPDF()->setCallbacks([[
+            'event' => 'end_frame',
+            'f' => function ($frame) use (&$akhir) {
+                $frame = is_array($frame) ? $frame['frame'] : $frame;   // dompdf 2 mengirim array, dompdf 3 mengirim frame
+                $node = $frame->get_node();
+
+                if ($node instanceof \DOMElement && $node->getAttribute('class') === 'ea-foot-t') {
+                    $kotak = $frame->get_border_box();
+                    $akhir = $kotak['y'] + $kotak['h'];
+                }
+            },
+        ]]);
+
+        $pdf->output();   // menjalankan render
+
+        return [$pdf, $akhir];
+    }
+
+    /** Sisa tinggi (pt) antara akhir footer surat dan margin bawah; 0 jika surat lebih dari satu halaman */
+    private function sisaRuang($pdf, ?float $akhir): float
+    {
+        $canvas = $pdf->getDomPDF()->getCanvas();
+
+        if ($akhir === null || $canvas->get_page_count() > 1) {
+            return 0;
+        }
+
+        $margin = 9.9 / 25.4 * 72;   // margin halaman 9,9 mm dalam pt
+
+        return max(0, $canvas->get_height() - $margin - $akhir);
     }
 
     public function selesai(Transaksi $transaksi)

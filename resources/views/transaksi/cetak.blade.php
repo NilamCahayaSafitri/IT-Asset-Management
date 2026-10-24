@@ -20,6 +20,10 @@
 <body>
     <div class="tx-bar">Pada dialog cetak, pilih printer atau <b>Simpan sebagai PDF</b>. <button type="button" onclick="window.print()">Cetak</button></div>
     <div class="ea-page printable">@include('transaksi._surat', ['d' => $d])</div>
-    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 400); });</script>
+    @include('transaksi._surat-fill')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () { window.eaFillSignature(document.querySelector('.ea-page')); });
+        window.addEventListener('load', function () { window.eaFillSignature(document.querySelector('.ea-page')); setTimeout(function () { window.print(); }, 400); });
+    </script>
 </body>
 </html>
