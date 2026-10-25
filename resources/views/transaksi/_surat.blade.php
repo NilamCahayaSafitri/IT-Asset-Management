@@ -2,9 +2,9 @@
 @php
     // isi sel kosong -> &nbsp; (sama seperti eaVal di prototype)
     $v = fn ($s) => trim((string) $s) !== '' ? e($s) : '&nbsp;';
-    // sel barang kosong -> "-"
-    $item = fn ($s) => trim((string) $s) !== '' ? e($s) : '-';
-    // CC dan Procurement Information (PO, AFE/CC, Year) kosong -> "-" (instruksi surat: jangan ada kolom kosong)
+    // sel isian kosong -> "N/A" (instruksi surat: jangan ada kolom kosong, tulis N/A bila tidak ada)
+    $item = fn ($s) => trim((string) $s) !== '' ? e($s) : 'N/A';
+    // CC, Phone No, Room No, dan Procurement Information (PO, AFE/CC, Year) kosong -> "N/A"
     $dash = $item;
     $types = $d['types'] ?? [];
     $tk = fn ($t) => in_array($t, $types, true) ? '<span class="tk">&#10003;</span> ' : '';
@@ -52,7 +52,7 @@
 <table class="ea-t">{!! $g10 !!}
     <tr><td colspan="2" class="b">Type of Allocation</td><td colspan="2" class="b c big">{!! $tk('Deploy') !!}Deploy</td><td colspan="2" class="b c big">{!! $tk('Return') !!}Return</td><td colspan="3" class="b c big">{!! $tk('Replace/Swap') !!}Replace/Swap</td><td class="b c big">{!! $tk('Move') !!}Move</td></tr>
     <tr><td class="b">User Name</td><td colspan="2">{!! $v($d['userName']) !!}</td><td colspan="2" class="b">User ID</td><td colspan="2">{!! $v($d['userId']) !!}</td><td class="b">CC</td><td colspan="2">{!! $dash($d['cc']) !!}</td></tr>
-    <tr><td class="b">Department</td><td colspan="2">{!! $v($d['dept']) !!}</td><td colspan="2" class="b">Phone No</td><td colspan="2">{!! $v($d['phone']) !!}</td><td class="b">Room No</td><td colspan="2">{!! $v($d['room']) !!}</td></tr>
+    <tr><td class="b">Department</td><td colspan="2">{!! $v($d['dept']) !!}</td><td colspan="2" class="b">Phone No</td><td colspan="2">{!! $dash($d['phone']) !!}</td><td class="b">Room No</td><td colspan="2">{!! $dash($d['room']) !!}</td></tr>
     <tr><td colspan="10" class="b i big2">Procurement Information &nbsp;<span class="nb">(for initial deployment only)</span></td></tr>
     <tr><td class="b">PO/Contract No:</td><td colspan="4">{!! $dash($d['po']) !!}</td><td colspan="2" class="b">AFE/CC:</td><td>{!! $dash($d['afe']) !!}</td><td colspan="2" class="b">Year <span class="nb">{!! $dash($d['year']) !!}</span></td></tr>
 </table>
@@ -101,11 +101,11 @@
         <td class="b i"><div>Delivered / Received / Moved by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg"{!! $sgStyle !!}><div class="sgl"{!! $sglStyle !!}></div></div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['pgeDate'] }}</span></div></td>
         <td class="b i sh"><div>Received / Returned by {!! $s1 !!}</div><div class="nb2">Signature:</div><div class="sg"{!! $sgStyle !!}><div class="sgl"{!! $sglStyle !!}></div></div><div class="nb2">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v">{{ $d['userName'] }}</span></div><div class="nb2">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="v"></span></div></td>
         <td class="b i cm">
-            <table class="ea-cm"><tr><td class="l" style="width:30%">•&nbsp; Update</td><td class="m"></td><td class="r" style="width:20%">(SRC)</td></tr></table>
+            <table class="ea-cm"><tr><td class="l" style="width:50%">•&nbsp; Update</td><td class="m" style="width:30%"></td><td style="width:2%"></td><td class="r">(SRC)</td></tr></table>
             <div class="sgc"{!! $sgcStyle !!}></div>
-            <table class="ea-cm"><tr><td class="m"></td><td class="r" style="width:20%">(TECH)</td></tr></table>
+            <table class="ea-cm"><tr><td class="m" style="width:28%"></td><td style="width:2%"></td><td class="l">(TECH)</td></tr></table>
             <div class="sgc"{!! $sgcStyle !!}></div>
-            <table class="ea-cm"><tr><td class="l" style="width:30%">•&nbsp; Review</td><td class="m"></td></tr></table>
+            <table class="ea-cm"><tr><td class="l" style="width:50%">•&nbsp; Review</td><td class="m" style="width:30%"></td><td></td></tr></table>
         </td>
     </tr>
 </table>

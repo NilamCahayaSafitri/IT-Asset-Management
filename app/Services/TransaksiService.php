@@ -66,7 +66,7 @@ class TransaksiService
                 'afe_cc'            => $isDeploy ? ($data['afe_cc'] ?? null) : null,
                 'tahun'             => $isDeploy ? ($data['tahun'] ?? null) : null,
                 'alasan_return'     => $showReturn ? ($data['alasan_return'] ?? null) : null,
-                'catatan'           => $this->susunCatatan($data, $showDeploy, $showReturn, $pinjaman),
+                'catatan'           => $this->susunCatatan($data, $showDeploy, $showReturn),
                 'status_dokumen'    => 'Menunggu TTD',
                 'id_users'          => $adminId,
             ]);
@@ -201,15 +201,13 @@ class TransaksiService
     }
 
     /** Menyusun "Additional Remarks" persis seperti prototype */
-    private function susunCatatan(array $data, bool $showDeploy, bool $showReturn, bool $pinjaman): ?string
+    private function susunCatatan(array $data, bool $showDeploy, bool $showReturn): ?string
     {
         $bagian = [];
 
         if ($showDeploy) {
+            // Catatan hanya berisi yang diketik pengguna; status pinjaman sementara tidak ikut dicetak di surat
             $note = trim((string) ($data['deploy_note'] ?? ''));
-            if ($pinjaman) {
-                $note = $note === '' ? 'Pinjaman sementara' : 'Pinjaman sementara: '.$note;
-            }
             if ($note !== '') {
                 $bagian[] = $note.'.';
             }
