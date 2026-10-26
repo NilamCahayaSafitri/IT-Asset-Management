@@ -126,6 +126,9 @@
             });
             formModal.querySelectorAll('.km-err').forEach(function (e) { e.remove(); });
 
+            // memberi tahu halaman yang memakai komponen ini (mis. Kelola User menyembunyikan kolom password saat ubah)
+            formModal.dispatchEvent(new CustomEvent('km:open', { detail: { mode: mode } }));
+
             openModal(formModal);
             var first = formFields()[0];
             if (first) setTimeout(function () { first.focus(); }, 30);

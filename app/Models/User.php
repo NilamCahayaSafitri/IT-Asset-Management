@@ -51,4 +51,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Riwayat yang dibuat user ini; dipakai untuk menentukan apakah akun boleh dihapus
+    public function asetMasuk()
+    {
+        return $this->hasMany(AsetMasuk::class, 'id_users');
+    }
+
+    public function transaksi()
+    {
+        return $this->hasMany(Transaksi::class, 'id_users');
+    }
 }

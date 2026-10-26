@@ -8,6 +8,7 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,11 +55,14 @@ Route::middleware('auth')->group(function () {
         'plan'  => ['Laporan per kategori, status, dan ruangan', 'Export Excel dan PDF'],
     ])->middleware('permission:lihat-laporan')->name('laporan.index');
 
-    Route::view('/users', 'placeholder', [
-        'title' => 'Kelola User',
-        'sub'   => 'Akun pengguna, role, dan status',
-        'plan'  => ['Daftar pengguna', 'Tambah, ubah, dan nonaktifkan akun', 'Atur role dan reset password'],
-    ])->middleware('permission:kelola-user')->name('users.index');
+    // Kelola User (permission: kelola-user, hanya Super Admin)
+    Route::middleware('permission:kelola-user')->group(function () {
+        Route::patch('users/{user}/status', [UserController::class, 'status'])->name('users.status');
+        Route::patch('users/{user}/password', [UserController::class, 'password'])->name('users.password');
+        Route::resource('users', UserController::class)
+            ->parameters(['users' => 'user'])
+            ->only(['index', 'store', 'update', 'destroy']);
+    });
 
     // Master Data: satu menu, banyak tab (permission: kelola-master)
     Route::middleware('permission:kelola-master')
