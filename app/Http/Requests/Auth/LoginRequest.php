@@ -19,7 +19,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string'],
+            'email'    => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ];
     }
@@ -27,13 +27,14 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'username.required' => 'Username wajib diisi.',
+            'email.required'    => 'Email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
             'password.required' => 'Password wajib diisi.',
         ];
     }
 
     /**
-     * Login memakai username + password. Akun yang statusnya bukan "aktif" ditolak.
+     * Login memakai email + password. Akun yang statusnya bukan "aktif" ditolak.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -41,11 +42,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'username' => 'Username atau password salah.',
+                'email' => 'Email atau password salah.',
             ]);
         }
 
@@ -54,7 +55,7 @@ class LoginRequest extends FormRequest
             Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
-                'username' => 'Akun Anda dinonaktifkan. Hubungi administrator.',
+                'email' => 'Akun Anda dinonaktifkan. Hubungi administrator.',
             ]);
         }
 
@@ -72,12 +73,12 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'username' => "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik.",
+            'email' => "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik.",
         ]);
     }
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('username')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
 }

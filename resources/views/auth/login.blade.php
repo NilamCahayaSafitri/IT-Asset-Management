@@ -27,11 +27,11 @@
             @csrf
 
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input id="username" type="text" name="username" value="{{ old('username') }}"
-                       class="form-control @error('username') is-invalid @enderror"
-                       placeholder="contoh: admin1" required autofocus autocomplete="username">
-                @error('username')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <label for="email" class="form-label">Email</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}"
+                    class="form-control @error('email') is-invalid @enderror"
+                    placeholder="nama@perusahaan.co.id" required autofocus autocomplete="email">
+                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-3">

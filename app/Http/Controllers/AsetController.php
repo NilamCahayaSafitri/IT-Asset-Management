@@ -34,6 +34,42 @@ class AsetController extends Controller
         ]);
     }
 
+    /** Halaman detail satu aset: info lengkap, pemegang saat ini, dan riwayat transaksi */
+    public function show(Aset $aset)
+    {
+        $aset->load(['kategori', 'ruangan', 'asetMasukDetail.asetMasuk.vendor']);
+
+        $riwayat = $aset->transaksiDetail()
+            ->with('transaksi.pegawai.departemen')
+            ->orderByDesc('id')
+            ->get();
+
+        // pemegang saat ini = pegawai pada transaksi Deploy/Move terakhir, selama aset masih dipakai
+        $pemegang = null;
+        if ($aset->status?->sedangDipakai()) {
+            $terakhir = $riwayat->firstWhere('bagian', 'deploy');
+            if ($terakhir) {
+                $pemegang = ['pegawai' => $terakhir->transaksi?->pegawai, 'transaksi' => $terakhir->transaksi, 'detail' => $terakhir];
+            }
+        }
+
+        return view('aset.show', compact('aset', 'riwayat', 'pemegang'));
+    }
+
+    /**
+     * Tujuan QR: /a/ITM-0001
+     * Siapa pun yang memindai (login atau tidak) langsung melihat informasi umum aset, tanpa login.
+     * Detail lengkap (pemegang, riwayat, dll) hanya ada di dalam aplikasi lewat menu Data Aset.
+     */
+    public function scan(string $kode)
+    {
+        $aset = Aset::with(['kategori', 'asetMasukDetail.asetMasuk.vendor'])->where('kode_aset', $kode)->first();
+
+        abort_if(! $aset, 404, "Aset dengan kode {$kode} tidak ditemukan.");
+
+        return view('aset.publik', compact('aset'));
+    }
+
     public function update(AsetRequest $request, Aset $aset)
     {
         $data = $request->validated();

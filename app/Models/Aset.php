@@ -54,6 +54,15 @@ class Aset extends Model
         return $this->hasMany(TransaksiDetail::class, 'id_aset');
     }
 
+    /**
+     * Alamat yang disimpan di QR: membuka halaman detail aset (setelah login).
+     * Memakai APP_URL supaya alamatnya sama siapa pun/dari mana pun label dicetak.
+     */
+    public function urlScan(): string
+    {
+        return rtrim((string) config('app.url'), '/').route('aset.scan', ['kode' => $this->kode_aset], false);
+    }
+
     /** Angka urut berikutnya untuk kode aset (ITM-0001, ITM-0002, ...) */
     public static function nextNumber(): int
     {

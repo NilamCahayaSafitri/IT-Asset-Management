@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AsetController;
 use App\Http\Controllers\AsetMasukController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\KategoriAsetController;
 use App\Http\Controllers\PegawaiController;
@@ -14,9 +15,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+// Tujuan QR aset (lihat Aset::urlScan). Terbuka untuk umum: pengguna yang berhak langsung ke detail lengkap,
+// tamu melihat info singkat (diatur lewat ITAM_QR_PUBLIK di .env).
+Route::get('a/{kode}', [AsetController::class, 'scan'])
+    ->where('kode', '[A-Za-z0-9-]+')
+    ->middleware('throttle:60,1')
+    ->name('aset.scan');
 
 Route::middleware('auth')->group(function () {
     // Bawaan Breeze (menu "Pengaturan" / klik profil di sidebar)
@@ -32,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:kelola-aset')->group(function () {
         Route::resource('aset', AsetController::class)
             ->parameters(['aset' => 'aset'])
-            ->only(['index', 'update', 'destroy']);
+            ->only(['index', 'show', 'update', 'destroy']);
 
         Route::resource('aset-masuk', AsetMasukController::class)
             ->parameters(['aset-masuk' => 'asetMasuk'])

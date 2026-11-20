@@ -24,6 +24,8 @@
         .as-actions{display:flex;gap:8px;margin-top:18px}
         .as-actions .km-btn{flex:1}
         .as-qr-center{text-align:center}
+        .as-url{font-size:11px;color:#66707d;word-break:break-all;margin-top:8px}
+        .as-warn{font-size:12px;color:#9b2f25;background:#fbe4e1;border-radius:8px;padding:8px 10px;margin-top:10px;text-align:left}
     </style>
 
     {{-- Pencarian dan filter --}}
@@ -94,6 +96,8 @@
 
                             $info = [
                                 'kode'     => $item->kode_aset,
+                                'url'      => $item->urlScan(),
+                                'show'     => route('aset.show', $item),
                                 'nama'     => $item->nama_aset,
                                 'kategori' => $item->kategori?->nama_kategori,
                                 'serial'   => $item->serial_number,
@@ -209,6 +213,7 @@
         <div class="as-qr" id="as-drawer-qr"></div>
         <div id="as-drawer-body"></div>
         <div class="as-actions">
+            <a href="#" class="km-btn line" id="as-drawer-open" style="text-decoration:none">Detail Lengkap</a>
             <button type="button" class="km-btn line" id="as-drawer-edit">Edit</button>
             <button type="button" class="km-btn primary" id="as-drawer-qrbtn">Cetak Label QR</button>
         </div>
@@ -225,6 +230,8 @@
                 <div class="as-qr" id="as-qr-box"></div>
                 <div style="font-weight:600;font-size:13px" id="as-qr-name"></div>
                 <div class="as-mono" id="as-qr-code"></div>
+                <div class="as-url" id="as-qr-url"></div>
+                <div class="as-warn" id="as-qr-warn" hidden>Alamat QR masih localhost, jadi tidak bisa dibuka dari HP. Ubah <b>APP_URL</b> di file .env ke alamat server yang bisa dijangkau dari jaringan kantor, lalu muat ulang halaman.</div>
             </div>
             <div class="km-foot">
                 <button type="button" class="km-btn line" data-as-close>Tutup</button>
@@ -251,6 +258,14 @@
                     return;
                 }
                 new QRCode(el, { text: text, width: size, height: size, colorDark: '#16283f', colorLight: '#ffffff' });
+            }
+
+            // Tampilkan alamat yang disimpan di QR; peringatkan bila masih localhost (tidak bisa dibuka dari HP)
+            function tampilkanUrl(url) {
+                document.getElementById('as-qr-url').textContent = url;
+                var host = '';
+                try { host = new URL(url).hostname; } catch (e) {}
+                document.getElementById('as-qr-warn').hidden = ['localhost', '127.0.0.1', '[::1]', '::1'].indexOf(host) === -1;
             }
 
             function kv(label, value, mono) {
@@ -301,7 +316,8 @@
                     });
                 }
 
-                makeQR(drawerQr, 'ITAM:' + i.kode, 120);
+                document.getElementById('as-drawer-open').href = i.show;
+                makeQR(drawerQr, i.url, 120);
                 drawer.classList.add('open'); drawerBg.classList.add('open');
             }
 
@@ -311,7 +327,8 @@
                 current = ctx;
                 document.getElementById('as-qr-name').textContent = ctx.info.nama;
                 document.getElementById('as-qr-code').textContent = ctx.info.kode;
-                makeQR(qrBox, 'ITAM:' + ctx.info.kode, 150);
+                makeQR(qrBox, ctx.info.url, 150);
+                tampilkanUrl(ctx.info.url);
                 qrModal.classList.add('open');
             }
 
